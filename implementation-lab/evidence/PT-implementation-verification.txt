@@ -1,0 +1,58 @@
+CST4562 Packet Tracer implementation checks
+Packet Tracer 9.0.1, 9 November 2026 Dubai time
+
+File and topology
+  CW_CST4562-Implementation.pkt reopened successfully after VLAN data was
+  persisted. The campus retains 60 employee PCs in three department groups.
+  Added VLAN 39 for backup, VLAN 40 for shared services, a shared services
+  switch, a backup operator PC, a simulated external HTTP endpoint and a
+  secondary trunk between Switch3 and Switch5.
+
+Representative observations
+  Router0 reported the user VLAN interfaces and VLAN 39/40 as up/up.
+  PC13 obtained 192.168.1.40/27, gateway 192.168.1.34 and DNS 192.168.1.114
+  through DHCP on the reopened implementation.
+  PC13 to Sales application server 192.168.1.97: 4/4 replies once the
+  network converged. An earlier attempt during bring-up got 0/4 replies.
+  PC13 to protected backup server 192.168.1.122: four destination host
+  unreachable responses from its gateway 192.168.1.34, 0/4 echo replies.
+  Backup-Console to 192.168.1.122: 4/4 echo replies on VLAN 39.
+  PC13 to simulated outside endpoint 203.0.113.10: 3/4 echo replies,
+  with the first request timing out.
+  PC13 loaded the default server page at https://intranet.mss.test and
+  http://www.external.test in Packet Tracer's simulated web browser.
+  The synthetic Marketing-to-Sales message reached SMTP acceptance
+  on the Mail server at 192.168.1.115 (Send Success).
+  The native-saved PKT contains one message in the Sales mailbox.
+  Stored sender: marketing@mss.test
+  Stored recipient: sales@mss.test
+  Stored subject: MSS service acceptance test
+  After reopening the saved implementation and waiting for DHCP, PC11
+  displayed Receive Mail Success on POP3 server 192.168.1.115 and listed
+  the message from marketing@mss.test with the expected subject.
+
+Policy enforcement and redundancy
+  Switch3 VLAN 20 before fault injection: Fa0/1 Root FWD, Fa0/24 Altn BLK.
+  Temporarily shut Switch3 Fa0/1. Fa0/24 changed through learning to Root FWD.
+  PC13 to Sales application server with the primary trunk shut: 3/4
+  echo replies. The first request timed out.
+  PC13 to backup with the primary trunk shut: 0/4 echo replies.
+  Router0 show access-lists 120 reported four hits on the permit ICMP
+  rule for 192.168.1.97 and four hits on the deny to 192.168.1.120/29.
+  Issued no shutdown on Switch3 Fa0/1 and observed the link come up.
+
+Scope
+  Application-level SMTP and POP3 were tested with synthetic mail inside
+  the simulator. Web results use Packet Tracer's simulated HTTP and HTTPS.
+  The database lab separately tests real PostgreSQL permissions and restore.
+  The fault injection covers one trunk failure. Router0 and the provider
+  path remain single points of failure in this model.
+
+After primary trunk restoration
+  Switch3 VLAN 20: Fa0/1 Root FWD, Fa0/24 Altn BLK.
+  PC14 (General Support) to Sales server 192.168.1.97: 4/4.
+  PC11 (Sales) to Marketing server 192.168.1.101: 3/4.
+  The first request timed out in the Sales test.
+
+Implementation PKT SHA-256
+  2dad059961f404da59c19acd33f17d3ec492e13c40486a08074715c871d4e8fd
