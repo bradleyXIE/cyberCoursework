@@ -1,0 +1,354 @@
+service timestamps log datetime msec
+service timestamps debug datetime msec
+service password-encryption
+hostname ACC-F1-MKT
+enable secret MssEnable#2026
+username netadmin privilege 15 secret MssAdmin#2026
+no ip domain-lookup
+ip domain-name mss.lan
+aaa new-model
+aaa authentication login default group radius local
+aaa authentication login CONSOLE local
+radius-server host 10.10.99.10 auth-port 1645 key MssRadius2026
+crypto key generate rsa general-keys modulus 2048
+ip ssh version 2
+ip ssh authentication-retries 3
+ip ssh time-out 60
+no ip http server
+ntp server 10.10.99.10
+logging host 10.10.99.10
+banner motd #Authorised access to MSS Ltd network devices only. All sessions are logged.#
+access-list 10 remark SSH allowed only from the management VLAN
+access-list 10 permit 10.10.99.0 0.0.0.255
+vtp mode transparent
+vlan 10
+ name MARKETING
+vlan 99
+ name MGMT
+vlan 999
+ name PARKING
+ip dhcp snooping
+ip dhcp snooping vlan 10
+no ip dhcp snooping information option
+ip arp inspection vlan 10
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+interface FastEthernet0/1
+ description MARKETING workstation F1-desk-01
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/2
+ description MARKETING workstation F1-desk-02
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/3
+ description MARKETING workstation F1-desk-03
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/4
+ description MARKETING workstation F1-desk-04
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/5
+ description MARKETING workstation F1-desk-05
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/6
+ description MARKETING workstation F1-desk-06
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/7
+ description MARKETING workstation F1-desk-07
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/8
+ description MARKETING workstation F1-desk-08
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/9
+ description MARKETING workstation F1-desk-09
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/10
+ description MARKETING workstation F1-desk-10
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/11
+ description MARKETING workstation F1-desk-11
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/12
+ description MARKETING workstation F1-desk-12
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/13
+ description MARKETING workstation F1-desk-13
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/14
+ description MARKETING workstation F1-desk-14
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/15
+ description MARKETING workstation F1-desk-15
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/16
+ description MARKETING workstation F1-desk-16
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/17
+ description MARKETING workstation F1-desk-17
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/18
+ description MARKETING workstation F1-desk-18
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/19
+ description MARKETING workstation F1-desk-19
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/20
+ description MARKETING workstation F1-desk-20
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 20
+ no cdp enable
+interface FastEthernet0/21
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/22
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/23
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/24
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet0/1
+ description Uplink to CORE-1 GigabitEthernet1/0/1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,99
+ switchport mode trunk
+ switchport nonegotiate
+ ip dhcp snooping trust
+ ip arp inspection trust
+interface GigabitEthernet0/2
+ description Uplink to CORE-2 GigabitEthernet1/0/1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,99
+ switchport mode trunk
+ switchport nonegotiate
+ ip dhcp snooping trust
+ ip arp inspection trust
+interface Vlan1
+ no ip address
+ shutdown
+interface Vlan99
+ description Management
+ ip address 10.10.99.21 255.255.255.0
+ no shutdown
+ip default-gateway 10.10.99.1
+line con 0
+ exec-timeout 5 0
+ logging synchronous
+ login authentication CONSOLE
+line vty 0 4
+ access-class 10 in
+ exec-timeout 10 0
+ transport input ssh
+ login authentication default
+line vty 5 15
+ access-class 10 in
+ exec-timeout 10 0
+ transport input ssh
+ login authentication default
+end

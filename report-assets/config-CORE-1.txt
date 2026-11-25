@@ -1,0 +1,341 @@
+service timestamps log datetime msec
+service timestamps debug datetime msec
+service password-encryption
+hostname CORE-1
+enable secret MssEnable#2026
+username netadmin privilege 15 secret MssAdmin#2026
+no ip domain-lookup
+ip domain-name mss.lan
+login block-for 120 attempts 3 within 60
+aaa new-model
+aaa authentication login default group radius local
+aaa authentication login CONSOLE local
+radius-server host 10.10.99.10 auth-port 1645 key MssRadius2026
+crypto key generate rsa general-keys modulus 2048
+ip ssh version 2
+ip ssh authentication-retries 3
+ip ssh time-out 60
+no ip http server
+ntp server 10.10.99.10
+logging host 10.10.99.10
+banner motd #Authorised access to MSS Ltd network devices only. All sessions are logged.#
+access-list 10 remark SSH allowed only from the management VLAN
+access-list 10 permit 10.10.99.0 0.0.0.255
+ip routing
+vtp mode transparent
+vlan 10
+ name MARKETING
+vlan 20
+ name SALES
+vlan 30
+ name GEN-SUPPORT
+vlan 40
+ name SERVICES
+vlan 50
+ name DATA
+vlan 60
+ name BACKUP
+vlan 99
+ name MGMT
+vlan 900
+ name CORE-TRANSIT
+vlan 999
+ name PARKING
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+spanning-tree vlan 10,30,50,99,900,999 priority 4096
+spanning-tree vlan 20,40,60 priority 8192
+interface Port-channel1
+ description LACP bundle to CORE-2 (Gi1/0/23-24)
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,30,40,50,60,99,900
+ switchport mode trunk
+ switchport nonegotiate
+interface Loopback0
+ ip address 10.10.0.1 255.255.255.255
+interface Vlan1
+ no ip address
+ shutdown
+interface Vlan10
+ description F1 Marketing, 20 workstations
+ ip address 10.10.10.2 255.255.255.0
+ standby version 2
+ standby 10 ip 10.10.10.1
+ standby 10 priority 110
+ standby 10 preempt
+ ip helper-address 10.10.40.10
+ ip helper-address 10.10.40.11
+ ip access-group USERS-IN in
+interface Vlan20
+ description F2 Sales, 25 workstations
+ ip address 10.10.20.2 255.255.255.0
+ standby version 2
+ standby 20 ip 10.10.20.1
+ standby 20 priority 100
+ standby 20 preempt
+ ip helper-address 10.10.40.10
+ ip helper-address 10.10.40.11
+ ip access-group USERS-IN in
+interface Vlan30
+ description F3 General Support, 15 workstations
+ ip address 10.10.30.2 255.255.255.0
+ standby version 2
+ standby 30 ip 10.10.30.1
+ standby 30 priority 110
+ standby 30 preempt
+ ip helper-address 10.10.40.10
+ ip helper-address 10.10.40.11
+ ip access-group USERS-IN in
+interface Vlan40
+ description Intranet, e-mail and DNS
+ ip address 10.10.40.2 255.255.255.0
+ standby version 2
+ standby 40 ip 10.10.40.1
+ standby 40 priority 100
+ standby 40 preempt
+interface Vlan50
+ description Departmental application and database servers
+ ip address 10.10.50.2 255.255.255.0
+ standby version 2
+ standby 50 ip 10.10.50.1
+ standby 50 priority 110
+ standby 50 preempt
+interface Vlan60
+ description Backup database replica and archive (isolated)
+ ip address 10.10.60.2 255.255.255.0
+ standby version 2
+ standby 60 ip 10.10.60.1
+ standby 60 priority 100
+ standby 60 preempt
+ ip access-group BACKUP-OUT out
+interface Vlan99
+ description Device management, NMS, admin workstation
+ ip address 10.10.99.2 255.255.255.0
+ standby version 2
+ standby 99 ip 10.10.99.1
+ standby 99 priority 110
+ standby 99 preempt
+ ip access-group MGMT-OUT out
+interface Vlan900
+ description Routed transit between cores
+ ip address 10.10.254.1 255.255.255.248
+ ip ospf message-digest-key 1 md5 MssOspf2026
+router ospf 1
+ router-id 10.10.0.1
+ log-adjacency-changes
+ passive-interface default
+ no passive-interface GigabitEthernet1/0/21
+ no passive-interface GigabitEthernet1/0/22
+ no passive-interface Vlan900
+ network 10.10.0.0 0.0.255.255 area 0
+ area 0 authentication message-digest
+ip route 0.0.0.0 0.0.0.0 10.10.255.10 250
+ip access-list extended USERS-IN
+ remark DHCP to the core relay/servers
+ permit udp any any eq bootps
+ remark replies to admin troubleshooting
+ permit icmp any 10.10.99.0 0.0.0.255 echo-reply
+ remark protected zones: backup, management, infrastructure
+ deny ip any 10.10.60.0 0.0.0.255
+ deny ip any 10.10.99.0 0.0.0.255
+ deny ip any 10.10.254.0 0.0.0.255
+ deny ip any 10.10.255.0 0.0.0.255
+ deny ip any 10.10.0.0 0.0.0.255
+ remark shared services
+ permit udp any host 10.10.40.10 eq domain
+ permit udp any host 10.10.40.11 eq domain
+ permit tcp any host 10.10.40.10 eq 443
+ permit tcp any host 10.10.40.11 eq smtp
+ permit tcp any host 10.10.40.11 eq pop3
+ permit icmp any 10.10.40.0 0.0.0.255 echo
+ deny ip any 10.10.40.0 0.0.0.255
+ remark every department may use every departmental application/database over HTTPS
+ permit tcp any 10.10.50.0 0.0.0.255 eq 443
+ permit icmp any 10.10.50.0 0.0.0.255 echo
+ deny ip any 10.10.50.0 0.0.0.255
+ remark no direct host-to-host traffic between departments (ping allowed for support)
+ permit icmp any 10.10.0.0 0.0.255.255 echo
+ deny ip any 10.10.0.0 0.0.255.255
+ remark Internet
+ permit ip any any
+ip access-list extended BACKUP-OUT
+ remark only data, service and management zones may reach backup
+ permit ip 10.10.50.0 0.0.0.255 10.10.60.0 0.0.0.255
+ permit ip 10.10.40.0 0.0.0.255 10.10.60.0 0.0.0.255
+ permit ip 10.10.99.0 0.0.0.255 10.10.60.0 0.0.0.255
+ deny ip any any
+ip access-list extended MGMT-OUT
+ remark return traffic for admin sessions
+ permit tcp any 10.10.99.0 0.0.0.255 established
+ permit icmp any 10.10.99.0 0.0.0.255 echo-reply
+ permit icmp any 10.10.99.0 0.0.0.255 unreachable
+ permit udp any eq domain 10.10.99.0 0.0.0.255
+ remark device telemetry and AAA towards the NMS
+ permit udp 10.10.0.0 0.0.255.255 host 10.10.99.10 eq 514
+ permit udp 10.10.0.0 0.0.255.255 host 10.10.99.10 eq 123
+ permit udp 10.10.0.0 0.0.255.255 host 10.10.99.10 eq 1645
+ permit udp 10.10.0.0 0.0.255.255 host 10.10.99.10 eq 1646
+ deny ip any any
+interface GigabitEthernet1/0/1
+ description Downlink to ACC-F1-MKT
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,99
+ switchport mode trunk
+ switchport nonegotiate
+ spanning-tree guard root
+interface GigabitEthernet1/0/2
+ description Downlink to ACC-F2-SALES1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 20,99
+ switchport mode trunk
+ switchport nonegotiate
+ spanning-tree guard root
+interface GigabitEthernet1/0/3
+ description Downlink to ACC-F2-SALES2
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 20,99
+ switchport mode trunk
+ switchport nonegotiate
+ spanning-tree guard root
+interface GigabitEthernet1/0/4
+ description Downlink to ACC-F3-GS
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 30,99
+ switchport mode trunk
+ switchport nonegotiate
+ spanning-tree guard root
+interface GigabitEthernet1/0/5
+ description Downlink to DC-SW-A
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 40,50,99
+ switchport mode trunk
+ switchport nonegotiate
+ spanning-tree guard root
+interface GigabitEthernet1/0/6
+ description Downlink to DC-SW-B
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 60,99
+ switchport mode trunk
+ switchport nonegotiate
+ spanning-tree guard root
+interface GigabitEthernet1/0/7
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/8
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/9
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/10
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/11
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/12
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/13
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/14
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/15
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/16
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/17
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/18
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/19
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/20
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet1/0/21
+ description Routed link to EDGE-1 GigabitEthernet0/0
+ no switchport
+ ip address 10.10.255.1 255.255.255.252
+ ip ospf message-digest-key 1 md5 MssOspf2026
+interface GigabitEthernet1/0/22
+ description Routed link to EDGE-2 GigabitEthernet0/0
+ no switchport
+ ip address 10.10.255.9 255.255.255.252
+ ip ospf message-digest-key 1 md5 MssOspf2026
+interface GigabitEthernet1/0/23
+ description Port-channel1 member to CORE-2
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,30,40,50,60,99,900
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 1 mode active
+interface GigabitEthernet1/0/24
+ description Port-channel1 member to CORE-2
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,30,40,50,60,99,900
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 1 mode active
+interface GigabitEthernet1/1/1
+ description UNUSED uplink module port
+ shutdown
+interface GigabitEthernet1/1/2
+ description UNUSED uplink module port
+ shutdown
+interface GigabitEthernet1/1/3
+ description UNUSED uplink module port
+ shutdown
+interface GigabitEthernet1/1/4
+ description UNUSED uplink module port
+ shutdown
+line con 0
+ exec-timeout 5 0
+ logging synchronous
+ login authentication CONSOLE
+line vty 0 4
+ access-class 10 in
+ exec-timeout 10 0
+ transport input ssh
+ login authentication default
+line vty 5 15
+ access-class 10 in
+ exec-timeout 10 0
+ transport input ssh
+ login authentication default
+end

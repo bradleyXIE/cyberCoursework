@@ -1,0 +1,86 @@
+service timestamps log datetime msec
+service timestamps debug datetime msec
+service password-encryption
+hostname EDGE-1
+enable secret MssEnable#2026
+username netadmin privilege 15 secret MssAdmin#2026
+no ip domain-lookup
+ip domain-name mss.lan
+security passwords min-length 10
+login block-for 120 attempts 3 within 60
+aaa new-model
+aaa authentication login default group radius local
+aaa authentication login CONSOLE local
+radius-server host 10.10.99.10 auth-port 1645 key MssRadius2026
+crypto key generate rsa general-keys modulus 2048
+ip ssh version 2
+ip ssh authentication-retries 3
+ip ssh time-out 60
+no ip http server
+ntp server 10.10.99.10
+logging host 10.10.99.10
+banner motd #Authorised access to MSS Ltd network devices only. All sessions are logged.#
+access-list 10 remark SSH allowed only from the management VLAN
+access-list 10 permit 10.10.99.0 0.0.0.255
+interface GigabitEthernet0/0
+ description Routed link to CORE-1 GigabitEthernet1/0/21
+ ip address 10.10.255.2 255.255.255.252
+ ip nat inside
+ ip ospf message-digest-key 1 md5 MssOspf2026
+ no shutdown
+interface GigabitEthernet0/1
+ description Routed link to CORE-2 GigabitEthernet1/0/21
+ ip address 10.10.255.6 255.255.255.252
+ ip nat inside
+ ip ospf message-digest-key 1 md5 MssOspf2026
+ no shutdown
+interface GigabitEthernet0/2
+ description WAN to ISP-A
+ ip address 203.0.113.2 255.255.255.252
+ ip nat outside
+ ip access-group OUTSIDE-IN in
+ no ip proxy-arp
+ no cdp enable
+ no shutdown
+interface Loopback0
+ ip address 10.10.0.3 255.255.255.255
+router ospf 1
+ router-id 10.10.0.3
+ log-adjacency-changes
+ passive-interface default
+ no passive-interface GigabitEthernet0/0
+ no passive-interface GigabitEthernet0/1
+ network 10.10.0.0 0.0.255.255 area 0
+ area 0 authentication message-digest
+ default-information originate
+ip route 0.0.0.0 0.0.0.0 203.0.113.1
+ip route 10.10.0.0 255.255.0.0 Null0 254
+access-list 1 remark inside networks translated by PAT
+access-list 1 permit 10.10.0.0 0.0.255.255
+ip nat inside source list 1 interface GigabitEthernet0/2 overload
+ip access-list extended OUTSIDE-IN
+ remark anti-spoofing: private and loopback sources never arrive from the Internet
+ deny ip 10.0.0.0 0.255.255.255 any
+ deny ip 172.16.0.0 0.15.255.255 any
+ deny ip 192.168.0.0 0.0.255.255 any
+ deny ip 127.0.0.0 0.255.255.255 any
+ remark only replies to sessions opened from inside
+ permit tcp any any established
+ permit icmp any any echo-reply
+ permit icmp any any unreachable
+ deny ip any any
+line con 0
+ exec-timeout 5 0
+ logging synchronous
+ login authentication CONSOLE
+line vty 0 4
+ access-class 10 in
+ exec-timeout 10 0
+ transport input ssh
+ login authentication default
+line vty 5 15
+ access-class 10 in
+ exec-timeout 10 0
+ transport input ssh
+ login authentication default
+end

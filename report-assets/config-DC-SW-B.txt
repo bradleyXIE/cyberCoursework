@@ -1,0 +1,214 @@
+service timestamps log datetime msec
+service timestamps debug datetime msec
+service password-encryption
+hostname DC-SW-B
+enable secret MssEnable#2026
+username netadmin privilege 15 secret MssAdmin#2026
+no ip domain-lookup
+ip domain-name mss.lan
+aaa new-model
+aaa authentication login default group radius local
+aaa authentication login CONSOLE local
+radius-server host 10.10.99.10 auth-port 1645 key MssRadius2026
+crypto key generate rsa general-keys modulus 2048
+ip ssh version 2
+ip ssh authentication-retries 3
+ip ssh time-out 60
+no ip http server
+ntp server 10.10.99.10
+logging host 10.10.99.10
+banner motd #Authorised access to MSS Ltd network devices only. All sessions are logged.#
+access-list 10 remark SSH allowed only from the management VLAN
+access-list 10 permit 10.10.99.0 0.0.0.255
+vtp mode transparent
+vlan 60
+ name BACKUP
+vlan 99
+ name MGMT
+vlan 999
+ name PARKING
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+interface FastEthernet0/1
+ description DB-REPLICA - Backup database server (replica of all three)
+ switchport access vlan 60
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 1
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ no cdp enable
+interface FastEthernet0/2
+ description BACKUP-ARCHIVE - Backup and archive server (FTP target)
+ switchport access vlan 60
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 1
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ no cdp enable
+interface FastEthernet0/3
+ description NMS - Syslog, NTP and RADIUS AAA
+ switchport access vlan 99
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 1
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ no cdp enable
+interface FastEthernet0/4
+ description ADMIN-PC - Network administrator workstation
+ switchport access vlan 99
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security maximum 1
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ no cdp enable
+interface FastEthernet0/5
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/6
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/7
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/8
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/9
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/10
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/11
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/12
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/13
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/14
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/15
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/16
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/17
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/18
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/19
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/20
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/21
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/22
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/23
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface FastEthernet0/24
+ description UNUSED - parked and shut
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+interface GigabitEthernet0/1
+ description Uplink to CORE-1 GigabitEthernet1/0/6
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 60,99
+ switchport mode trunk
+ switchport nonegotiate
+interface GigabitEthernet0/2
+ description Uplink to CORE-2 GigabitEthernet1/0/6
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 60,99
+ switchport mode trunk
+ switchport nonegotiate
+interface Vlan1
+ no ip address
+ shutdown
+interface Vlan99
+ description Management
+ ip address 10.10.99.26 255.255.255.0
+ no shutdown
+ip default-gateway 10.10.99.1
+line con 0
+ exec-timeout 5 0
+ logging synchronous
+ login authentication CONSOLE
+line vty 0 4
+ access-class 10 in
+ exec-timeout 10 0
+ transport input ssh
+ login authentication default
+line vty 5 15
+ access-class 10 in
+ exec-timeout 10 0
+ transport input ssh
+ login authentication default
+end
