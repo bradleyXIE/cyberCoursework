@@ -23,6 +23,9 @@ MEMBERS = [("ZHIJIE XIE", "M01141159"), ("GUL KHALID KHAN I", "M01144661"),
 BULLET_NUMID, DECIMAL_NUMID = "5", "1"
 
 tpl, out, parts = sys.argv[1], sys.argv[2], sys.argv[3:]
+import os as _os
+ZH = _os.environ.get("REPORT_LANG") == "zh"   # Chinese study copy
+T = (lambda en, zh: zh if ZH else en)
 d = docx.Document(tpl)
 body = d.element.body
 
@@ -56,6 +59,12 @@ for sid, before, after in (("Heading1", 360, 120), ("Heading2", 240, 80)):
     sp = OxmlElement("w:spacing"); sp.set(qn("w:before"), str(before)); sp.set(qn("w:after"), str(after))
     kn = OxmlElement("w:keepNext")
     ppr.insert(0, kn); ppr.append(sp)
+if ZH:  # East Asian font for every style that inherits from the defaults
+    for rpr in styles_el.xpath("w:docDefaults/w:rPrDefault/w:rPr") + styles_el.xpath('w:style[@w:styleId="Normal"]/w:rPr'):
+        rf = rpr.find(qn("w:rFonts"))
+        if rf is None:
+            rf = OxmlElement("w:rFonts"); rpr.insert(0, rf)
+        rf.set(qn("w:eastAsia"), "PingFang SC")
 # Body text spacing and justification
 bt = d.styles["Body Text"]
 bt.paragraph_format.space_after = Pt(6)
@@ -126,11 +135,11 @@ sub = OxmlElement("w:p")
 mt._tbl.addnext(sub)
 sp = docx.text.paragraph.Paragraph(sub, prepared._parent)
 sp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-add_runs(sp, "Topic: MSS Ltd campus LAN – design, implementation and vulnerability analysis", size=11)
+add_runs(sp, T("Topic: MSS Ltd campus LAN – design, implementation and vulnerability analysis", "主题：MSS Ltd 园区局域网——设计、实施与漏洞分析（中文学习版）"), size=11)
 sp2 = OxmlElement("w:p"); sub.addnext(sp2)
 sp2 = docx.text.paragraph.Paragraph(sp2, prepared._parent)
 sp2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-add_runs(sp2, "Submission: 11 December 2026  ·  Packet Tracer file: CW_CST4562-Implementation.pkt", size=10)
+add_runs(sp2, T("Submission: 11 December 2026  ·  Packet Tracer file: CW_CST4562-Implementation.pkt", "提交日期：2026 年 12 月 11 日  ·  Packet Tracer 文件：CW_CST4562-Implementation.pkt"), size=10)
 
 # remove the placeholder body after the cover section (keep final sectPr)
 children = list(body.iterchildren())
@@ -166,10 +175,10 @@ for kind, txt in (("begin", None), ("instr", " PAGE "), ("end", None)):
 sec.header.is_linked_to_previous = False
 hp = sec.header.paragraphs[0]
 hp.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-add_runs(hp, "CST4562 Group Coursework – MSS Ltd campus LAN", size=8, color="7F7F7F")
+add_runs(hp, T("CST4562 Group Coursework – MSS Ltd campus LAN", "CST4562 小组作业 – MSS Ltd 园区局域网（中文学习版）"), size=8, color="7F7F7F")
 
 # contents (Word fills page numbers on open; settings.updateFields is set)
-p = new_par("heading 1"); p.add_run("Contents")
+p = new_par("heading 1"); p.add_run(T("Contents", "目录"))
 p = new_par("Body Text")
 for kind, txt in (("begin", None), ("instr", ' TOC \\o "1-2" \\h \\z \\u '), ("separate", None)):
     r = p.add_run()
@@ -211,7 +220,8 @@ def add_table(rows):
     cells = [[c.strip() for c in re.sub(r"^\||\|$", "", r).split("|")] for r in rows]
     head, data = cells[0], cells[2:]
     n = len(head)
-    lens = [min(55, max(5, max(len(x[i]) if i < len(x) else 0 for x in [head] + data))) for i in range(n)]
+    vis = lambda t: sum(2 if ord(ch) > 0x2E80 else 1 for ch in t)   # CJK glyphs are double width
+    lens = [min(55, max(5, max(vis(x[i]) if i < len(x) else 0 for x in [head] + data))) for i in range(n)]
     tot = sum(lens)
     t = d.add_table(rows=1 + len(data), cols=n)
     t.alignment = WD_TABLE_ALIGNMENT.CENTER

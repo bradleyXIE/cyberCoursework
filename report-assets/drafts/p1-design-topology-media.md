@@ -69,7 +69,7 @@ The ISP routers (2901) and public web server only simulate the Internet and are 
 
 **Horizontal.** Desk outlets are cabled with Cat6 U/UTP to a patch panel in the floor IDF, with each permanent link within 90 m [10]. An IDF on every floor keeps desk runs short enough to meet this limit without further telecommunications rooms, and Cat6 gives the Gigabit and PoE headroom that the phones and access points proposed in 5.1 need.
 
-**Riser.** Each riser uplink aggregates a whole department, so bandwidth and resilience matter most there. The group recommends OM4 multimode fibre with 1G/10G SFP modules on both risers: uplinks can move to 10 Gb/s without re-cabling as departmental data sets grow,. In Packet Tracer the 2960-24TT copper Gigabit uplinks (Gi0/1, Gi0/2) are the functional equivalent; the logical design is unchanged.
+**Riser.** Each riser uplink aggregates a whole department, so bandwidth and resilience matter most there. The group recommends OM4 multimode fibre with 1G/10G SFP modules on both risers: uplinks can move to 10 Gb/s without re-cabling as departmental data sets grow. In Packet Tracer the 2960-24TT copper Gigabit uplinks (Gi0/1, Gi0/2) are the functional equivalent; the logical design is unchanged.
 
 **Server room.** Short Cat6A patch leads connect servers, server-room switches and cores, giving 10G headroom on the densest runs.
 
