@@ -5,7 +5,7 @@ Each defence is traced to a tested or analysed finding. Where Packet Tracer coul
 | Finding | Defence implemented in the MSS design | Verification (figure or evidence ID) | Further hardening |
 |---|---|---|---|
 | V1 Exposed backup database | Backup servers in isolated VLAN 60; USERS-IN denies 10.10.60.0/24; BACKUP-OUT admits only data, services and management | E05 (5432 filtered from employees, open from backup network); 10.10.60.10 unreachable (Figure 05); deny hits (Figure 11) | Encrypted replication from VLAN 50 to VLAN 60 |
-| V2 Cleartext credentials | HTTPS-only intranet and departmental servers; HTTP denied by USERS-IN and disabled | E06–E08 (TLS 1.3, token absent from capture); HTTPS loads (Figure 06a, 06c), HTTP times out (Figure 06b) | POP3S/IMAPS and SFTP instead of POP3 and FTP; cipher review with Nmap ssl-enum-ciphers [14] |
+| V2 Cleartext credentials | HTTPS-only intranet and departmental servers; HTTP denied by USERS-IN and disabled | E06–E08 (TLS 1.3, token absent from capture); C04 (no HTTP request in capture); HTTPS loads (Figure 06a, 06c), HTTP times out (Figure 06b) | Cipher review found six static-RSA and four SHA-1 CBC suites still offered (C03, Figure 7.4): keep only ECDHE with AEAD ciphers; POP3S/IMAPS and SFTP instead of POP3 and FTP [14] |
 | V3 Broken access control | Application role checks; device administration confined to VLAN 99 (VTY access-class, USERS-IN) | E06 (employee 403, admin 200); SSH from ADMIN-PC succeeds (Figure 12a), from MKT-PC01 times out (Figure 12b) | Test against OWASP A01 [12] with OWASP ZAP before each release |
 | A1 VLAN hopping (DTP, native VLAN) | Nonegotiate trunks, unrouted native VLAN 999, allowed VLAN lists | Configuration check, 0 missing lines | Periodic Yersinia test from a user port |
 | A2 Rogue DHCP / starvation | DHCP snooping with trusted uplinks and 20 pps limit; port-security | Snooping enabled on VLAN 10, 20 pps (Figure 08) | Alert on snooping drops at the NMS |
@@ -27,7 +27,7 @@ The design remains secure only if it is retested as it changes. The schedule sui
 | Frequency | Activity | Tool | Owner role | Output |
 |---|---|---|---|---|
 | Daily | Review login, HSRP/OSPF, port-security and snooping events | NMS syslog | Network administrator | Review note or incident ticket |
-| After every change | Rerun the configuration drift check and the Docker vulnerability lab | check_config.py; Docker lab with Kali tools | Network administrator | 0 missing lines; lab PASS for V1–V3 |
+| After every change | Rerun the configuration drift check and the Docker vulnerability lab | check_config.py; Docker lab (run.sh and ch7-tool-examples.sh) with Kali tools | Network administrator | 0 missing lines; lab PASS for V1–V3; discovery and cipher outputs unchanged |
 | After every change | Copy each device configuration to ADMIN-PC over SSH, then upload it to BACKUP-ARCHIVE | SSH from ADMIN-PC; FTP (SFTP in production) | Network administrator | Dated configuration archive |
 | Monthly | Authenticated vulnerability scan of servers and devices | Greenbone/OpenVAS | Security lead | Rated scan report |
 | Monthly | Patch servers and workstations; review IOS advisories | Vendor update channels | Server administrator | Patch log |

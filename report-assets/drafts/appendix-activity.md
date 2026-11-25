@@ -1,4 +1,4 @@
-## Appendix C: Group activity list
+## Appendix D: Group activity list
 
 | Name | Student ID | Contribution |
 |---|---|---|
